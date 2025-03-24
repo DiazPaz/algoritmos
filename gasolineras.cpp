@@ -1,112 +1,59 @@
 #include <iostream>
+#include <string>
 #include <vector>
+#include <cmath>
 #include <algorithm>
 
-using namespace std; 
+using namespace std;
 
-int seleccion(vector<pair<int,int>> gas, int pos, int rad)
+int seleccion(vector<pair<int, int>> &E, int eact, int lactual)
 {
-    
+    if (eact >= E.size())
+        return -9;
+    int imax = eact;
+    for (int i = eact; i < E.size(); i++)
+    {
+        if (E[i].first - E[i].second <= lactual)                           // Si la estacion cubre hasta donde vamos
+            if (E[i].first + E[i].second > E[imax].first + E[imax].second) // Vemos si cubre más.
+                imax = i;
+    }
+    if (E[imax].first - E[imax].second <= lactual) // Si la elegida cubre hasta donde vamos
+        return imax;
+    else
+        return -9;
 }
 
-// int seleccion(vector<pair<int,int>> gas, int pos, int radMasPos)
-// {
-//     for(int i = pos; i < gas.size(); i++)
-//     {
-//         if(gas[i].first+gas[i].second < radMasPos)
-//             continue;
-//         else if(gas[i].first-gas[i].second > radMasPos)
-//             return -1; 
-//         else
-//             return i;
-//     }
-//     return 0; 
-// }
-
-int main(void)
+int main()
 {
-    int L, G, numFinal = 0; 
-    int pos, rad; 
-    vector<pair<int,int>> gas; 
-    // while(true)
-    // {
-        
-    //     // while(G--)
-    //     // {
-    //     //     cin >> pos >> rad;
-    //     //     gas.push_back(make_pair(pos,rad));
-    //     // }
-    //     // sort(gas.begin(),gas.end());
-        
-    //     // int pos = 0; 
-    //     // int lActual = 0; 
-    //     // int cont = 0; 
-    //     // int e = 0;
-    //     // while(pos != -1 && lActual < L)
-    //     // {
-    //         //     e = seleccion(gas, e, lActual);
-    //         //     lActual = gas[e].first + gas[pos].second;
-    //         //     cont++;
-    //         // }
-    //         // cout << G-cont << endl;
-    //     }
-        
-        numFinal = 0;
+    int L, G, x, r;
+    while (true)
+    {
         cin >> L >> G;
-
-        if(L == 0 && G == 0)
-            return 0; 
-
-        while(G--)
+        if (L == 0 && G == 0)
+            return 0;
+        vector<pair<int, int>> E;
+        for (int i = 0; i < G; i++)
         {
-            cin >> pos >> rad;
-            gas.push_back(make_pair(pos,rad));
+            cin >> x >> r;
+            E.push_back(make_pair(x, r));
         }
-        sort(gas.begin(),gas.end());
-
-        int cont = 0, aux = 0;
-        for(int i = 0; i < L; cont++)
+        sort(E.begin(), E.end());
+        int lactual = 0;
+        int cont = 0;
+        int e = -1;
+        while (e != -9 && lactual < L)
         {
-
-            if(cont == 0 && rad >= pos)
-            {
-                i += (pos + rad);
-                aux = cont; 
-            }
-            else if(gas[cont].first <= gas[aux].first+gas[aux].second && gas[cont].first > gas[aux].first) // si está dentro del área de cobertura de la gas anterior
-            {
-                if(gas[cont].first+gas[cont].second > gas[aux].first+gas[aux].second)
-                {
-                    i += gas[cont].first+gas[cont].second - gas[aux].first+gas[aux].second;
-                    numFinal++;
-                    cont++;
-                }
-                else if(gas[cont].first+gas[cont].second <= gas[aux].first+gas[aux].second)
-                    cont++;
-            }
-            else if(gas[cont].first > gas[aux].first+gas[aux].second) // si está a la derecha y fuera del área de cobertura de la gas anterior
-            {
-                if(gas[cont].first-gas[cont].second <= gas[aux].first+gas[aux].second) // si el limite izquierdo es menor o igual al limite derecho del área de cobertura de la gas anterior
-                {
-                    if(gas[cont].first-gas[cont].second < gas[aux].first+gas[aux].second)
-                    {
-                        i += (2*gas[cont].first+gas[cont].second - (gas[aux].first+gas[aux].second - gas[cont].first-gas[cont].second));
-                        numFinal++;
-                        cont++;
-                    }
-                    else if(gas[cont].first-gas[cont].second == gas[aux].first+gas[aux].second)
-                    {
-                        i += 2*gas[cont].first+gas[cont].second;
-                        cont++;
-                    }    
-                }
-                else
-                    cout << -1 << endl;
-            }
-            
-            
+            e = seleccion(E, e + 1, lactual);
+            // cout<<"Se toma "<<e<<endl;
+            if (e == -9)
+                continue;
+            lactual = E[e].first + E[e].second;
+            // cout<<"vamos en "<<lactual<<endl;
+            cont++;
         }
-        cout << G - numFinal << endl;
-
-    return 0; 
+        if (e == -9)
+            cout << "-1" << endl;
+        else
+            cout << G - cont << endl;
+    }
 }
