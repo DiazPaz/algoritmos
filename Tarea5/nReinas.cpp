@@ -1,85 +1,71 @@
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 using namespace std;
+int minimum;
 
-int posCheck(vector<vector<int>>& board, vector<int> &queenPos)
+void minMoves(const vector<int> &queens, const vector<int> &queensCopy, int &moves)
 {
-    int moves = 0; 
-    for(int i = 0; i < board.size(); i++)
-    {
-        if(board[i][queenPos[i]] == 0)
+    moves = 0;
+    for(unsigned i = 0; i < queens.size(); i++)
+        if(queens[i] != queensCopy[i])
             moves++;
-    }
-    return moves;
+    minimum = min(minimum, moves);
 }
 
-bool horizontalThreat(const vector<vector<int>>& board, int row, int col) 
+bool threats(const vector<int> &queens, int col, int rows)
 {
-    for (int j = 0; j < col; j++) 
-        if (board[row][j] == 1) return true;
-    return false;
-}
-
-bool diagonalNegThreat(const vector<vector<int>>& board, int row, int col) 
-{
-    for (int i = row, j = col; i < board.size() && j >= 0; i++, j--)
-        if (board[i][j] == 1) return true;
-    return false;
-}
-
-bool diagonalPosThreat(const vector<vector<int>>& board, int row, int col) 
-{
-    for (int i = row, j = col; i >= 0 && j >= 0; i--, j--) 
-        if (board[i][j] == 1) return true;
-    return false;
-}
-
-bool isSafe(const vector<vector<int>>& board, int row, int col) 
-{
-    return !horizontalThreat(board, row, col) && 
-           !diagonalNegThreat(board, row, col) && 
-           !diagonalPosThreat(board, row, col);
-}
-
-bool placeQueens(vector<vector<int>>& board, vector<int> &queenPos, int col) 
-{
-    int n = board.size();
-    if (col >= n) 
+    int previousRow;
+    for(int previousCol = 0; previousCol < col; previousCol++)
     {
-        cout << posCheck(board, queenPos) << endl;
-        return true; 
+        previousRow = queens[previousCol];
+        if(rows == previousRow || (previousRow-previousCol == rows-col) || (previousRow+previousCol == rows+col))
+            return true; 
+    }
+    return false; 
+}
+
+void backtracking(vector<int> &queens, const vector<int> &queensCopy, int col, int &moves)
+{
+    if(col == queens.size())
+    {
+        minMoves(queens,queensCopy,moves);
+        return;
     }
     
-    for (int row = queenPos[col]; row < n; row++) 
+    for(int rows = 0; rows < queens.size(); rows++)
     {
-        if (!(horizontalThreat(board, row, col) && diagonalNegThreat(board, row, col) && diagonalPosThreat(board, row, col))) 
+        if(!threats(queens, col, rows))
         {
-            board[row][col] = 1;
-            if (placeQueens(board, queenPos, col + 1)) 
-                return true;
-            board[row][col] = 0; 
+            queens[col] = rows; 
+            backtracking(queens, queensCopy, col+1, moves);
         }
     }
-    return false;
+
+    queens[col] = queensCopy[col];
 }
 
-int main() {
+int main(void)
+{
+    int n, aux; 
+    while(cin >> n && n != 0)
+    {
+        vector<int> queens(n);
+        vector<int> queensCopy(n);
+        int moves = 0;
+        minimum = n;
 
-    int n = 1, pos; 
-    cin >> n;
-    while(n != 0)
-    {   
-        vector<vector<int>> board(n, vector<int>(n, 0));
-        vector<int> queenPos(n);
-        while(n--)
+        for(unsigned i = 0; i < n; i++)
         {
-            cin >> pos; 
-            queenPos.push_back(pos);
+            cin >> queens[i];
+            queens[i]-=1; 
+            queensCopy[i] = queens[i];
         }
-        placeQueens(board, queenPos, 0);
-        cin >> n;
-    } 
+
+        backtracking(queens,queensCopy,0,moves);
+        cout << minimum << endl;
+    }
 
     return 0;
 }
